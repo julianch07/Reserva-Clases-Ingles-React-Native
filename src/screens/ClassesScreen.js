@@ -15,11 +15,14 @@ import Card from '../components/Card';
 import NivelFiltro from '../components/NivelFiltro';
 import EstadoVacio from '../components/EstadoVacio';
 import useResponsive from '../hooks/useResponsive';
+import { useReservas } from '../contexts/ReservasContext';
 import { clases, niveles } from '../data/clases';
 import { colors, spacing, typography, radius } from '../theme';
 
 export default function ClassesScreen({ navigation }) {
   const insets = useSafeAreaInsets();
+
+  const { obtenerCupos } = useReservas();
 
   const [filtroNivel, setFiltroNivel] = useState('Todos');
   const [busqueda, setBusqueda] = useState('');
@@ -27,10 +30,19 @@ export default function ClassesScreen({ navigation }) {
   const { isTablet, columnas, anchoCard, paddingHorizontal } =
     useResponsive();
 
+  const clasesActualizadas = useMemo(
+    () =>
+      clases.map((clase) => ({
+        ...clase,
+        cupos: obtenerCupos(clase.id),
+      })),
+    [obtenerCupos]
+  );
+
   const clasesFiltradas = useMemo(() => {
     const termino = busqueda.trim().toLowerCase();
 
-    return clases.filter((clase) => {
+    return clasesActualizadas.filter((clase) => {
       const coincideNivel =
         filtroNivel === 'Todos' || clase.nivel === filtroNivel;
 
@@ -42,7 +54,7 @@ export default function ClassesScreen({ navigation }) {
 
       return coincideNivel && coincideBusqueda;
     });
-  }, [filtroNivel, busqueda]);
+  }, [clasesActualizadas, filtroNivel, busqueda]);
 
   const limpiarBusqueda = () => {
     setBusqueda('');

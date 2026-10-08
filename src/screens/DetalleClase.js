@@ -1,19 +1,71 @@
-import React, { useLayoutEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Image, Pressable } from 'react-native';
+
+import React, { useLayoutEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Image,
+  Pressable,
+  Alert,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import useResponsive from '../hooks/useResponsive';
+import { useReservas } from '../contexts/ReservasContext';
 import { colors, spacing, typography } from '../theme';
 
 export default function DetalleClase({ route, navigation }) {
   const { clase } = route.params;
   const { isTablet, paddingHorizontal } = useResponsive();
 
+  const {
+    obtenerCupos,
+    reservas,
+    agregarReserva,
+  } = useReservas();
+
+  const cuposDisponibles = obtenerCupos(clase.id);
+
+  const [horarioSeleccionado, setHorarioSeleccionado] = useState(null);
+
   const totalHorarios = clase.horarios?.length || 0;
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: clase.titulo });
   }, [navigation, clase.titulo]);
+
+  const handleReservar = () => {
+    if (!horarioSeleccionado) {
+      Alert.alert('Selecciona un horario', 'Debes elegir un horario para continuar.');
+      return;
+    }
+
+    if (cuposDisponibles <= 0) {
+      Alert.alert('Sin cupos', 'Esta clase ya no tiene cupos disponibles.');
+      return;
+    }
+
+    const reservaExistente = reservas.some(
+      (reserva) =>
+        reserva.claseId === clase.id &&
+        reserva.horarioId === horarioSeleccionado.id &&
+        reserva.estado !== 'rechazada'
+    );
+
+    if (reservaExistente) {
+      Alert.alert(
+        'Reserva existente',
+        'Ya tienes una reserva para este horario.'
+      );
+      return;
+    }
+
+    navigation.navigate('ReservaSolicitada', {
+      clase,
+      horario: horarioSeleccionado,
+    });
+  };
 
   return (
     <View style={styles.pantalla}>
@@ -51,7 +103,7 @@ export default function DetalleClase({ route, navigation }) {
                 size={22}
                 color={colors.primario}
               />
-              <Text style={styles.datoValor}>{clase.cupos}</Text>
+              <Text style={styles.datoValor}>{cuposDisponibles}</Text>
               <Text style={styles.datoEtiqueta}>Cupos</Text>
             </View>
 
@@ -92,29 +144,70 @@ export default function DetalleClase({ route, navigation }) {
             <Text style={styles.subtitulo}>Horarios disponibles</Text>
 
             {clase.horarios?.map((horario) => (
-              <View key={horario.id} style={styles.horario}>
+              <Pressable
+                key={horario.id}
+                style={[
+                  styles.horario,
+                  horarioSeleccionado?.id === horario.id &&
+                    styles.horarioSeleccionado,
+                ]}
+                onPress={() => setHorarioSeleccionado(horario)}
+              >
                 <Ionicons
                   name="calendar-outline"
                   size={18}
-                  color={colors.primario}
+                  color={
+                    horarioSeleccionado?.id === horario.id
+                      ? colors.superficie
+                      : colors.primario
+                  }
                 />
 
                 <View style={styles.horarioInfo}>
-                  <Text style={styles.horarioDia}>{horario.dia}</Text>
-                  <Text style={styles.horarioHora}>{horario.hora}</Text>
+                  <Text
+                    style={[
+                      styles.horarioDia,
+                      horarioSeleccionado?.id === horario.id &&
+                        styles.textoHorarioSeleccionado,
+                    ]}
+                  >
+                    {horario.dia}
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.horarioHora,
+                      horarioSeleccionado?.id === horario.id &&
+                        styles.textoHorarioSeleccionado,
+                    ]}
+                  >
+                    {horario.hora}
+                  </Text>
                 </View>
-              </View>
+              </Pressable>
             ))}
           </View>
 
           <Pressable
+            disabled={!horarioSeleccionado || cuposDisponibles <= 0}
             style={({ pressed }) => [
               styles.botonReservar,
-              pressed && styles.botonPresionado,
+              (!horarioSeleccionado || cuposDisponibles <= 0) &&
+                styles.botonDeshabilitado,
+              pressed &&
+                horarioSeleccionado &&
+                cuposDisponibles > 0 &&
+                styles.botonPresionado,
             ]}
-            onPress={() => {}}
+            onPress={handleReservar}
           >
-            <Text style={styles.textoBotonReservar}>Reservar clase</Text>
+            <Text style={styles.textoBotonReservar}>
+              {cuposDisponibles <= 0
+                ? 'Sin cupos disponibles'
+                : horarioSeleccionado
+                  ? 'Reservar clase'
+                  : 'Selecciona un horario'}
+            </Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -220,6 +313,10 @@ const styles = StyleSheet.create({
     borderColor: colors.borde,
     gap: spacing.sm,
   },
+  horarioSeleccionado: {
+    backgroundColor: colors.primario,
+    borderColor: colors.primario,
+  },
   horarioInfo: {
     gap: 2,
   },
@@ -232,6 +329,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textoSuave,
   },
+  textoHorarioSeleccionado: {
+    color: colors.superficie,
+  },
   botonReservar: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -239,6 +339,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     borderRadius: 12,
     backgroundColor: colors.primario,
+  },
+  botonDeshabilitado: {
+    backgroundColor: colors.borde,
   },
   botonPresionado: {
     opacity: 0.8,

@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import ClassesScreen from '../screens/ClassesScreen';
 import DetalleClase from '../screens/DetalleClase';
+import ReservaSolicitadaScreen from '../screens/ReservaSolicitadaScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -20,6 +21,15 @@ export default function ClassesStack() {
         component={DetalleClase}
         options={{
           title: 'Detalle',
+          headerBackTitle: 'Atrás',
+        }}
+      />
+
+      <Stack.Screen
+        name="ReservaSolicitada"
+        component={ReservaSolicitadaScreen}
+        options={{
+          title: 'Solicitud de reserva',
           headerBackTitle: 'Atrás',
         }}
       />
