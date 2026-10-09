@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 import {
   Alert,
@@ -313,8 +312,10 @@ const styles = StyleSheet.create({
   },
   contenido: {
     padding: spacing.lg,
+    paddingTop: 60,
     paddingBottom: spacing.xl,
   },
+
   descripcion: {
     fontSize: 14,
     lineHeight: 21,
