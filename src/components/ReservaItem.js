@@ -1,39 +1,94 @@
-import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing } from '../theme';
-import EtiquetaNivel from './EtiquetaNivel';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
-/**
- * Componente ReservaItem
- * Representa la tarjeta individual de una clase reservada con su información y opción de cancelación.
- */
+import { Ionicons } from '@expo/vector-icons';
+
+import EtiquetaNivel from './EtiquetaNivel';
+import { colors, spacing, radius } from '../theme';
+
 export default function ReservaItem({ reserva, onCancelar }) {
+  const estaAceptada = reserva.estado === 'aceptada';
+
   return (
     <View style={styles.tarjeta}>
       <View style={styles.cabecera}>
         <EtiquetaNivel nivel={reserva.nivel} />
-        <Text style={styles.precio}>${reserva.precio} USD</Text>
+
+        <Text style={styles.precio}>
+          ${reserva.precio} USD
+        </Text>
       </View>
 
       <Text style={styles.titulo}>{reserva.titulo}</Text>
 
       <View style={styles.filaInfo}>
-        <Ionicons name="person-outline" size={14} color="#4B5563" />
-        <Text style={styles.textoInfo}>Prof. {reserva.profesor?.nombre || reserva.profesor}</Text>
+        <Ionicons
+          name="person-outline"
+          size={16}
+          color={colors.textoSuave}
+        />
+        <Text style={styles.textoInfo}>
+          Prof. {reserva.profesor?.nombre || reserva.profesor}
+        </Text>
       </View>
 
       <View style={styles.filaInfo}>
-        <Ionicons name="time-outline" size={14} color="#4B5563" />
-        <Text style={styles.textoInfo}>{reserva.duracion}</Text>
+        <Ionicons
+          name="calendar-outline"
+          size={16}
+          color={colors.textoSuave}
+        />
+        <Text style={styles.textoInfo}>{reserva.dia}</Text>
+      </View>
+
+      <View style={styles.filaInfo}>
+        <Ionicons
+          name="time-outline"
+          size={16}
+          color={colors.textoSuave}
+        />
+        <Text style={styles.textoInfo}>{reserva.hora}</Text>
+      </View>
+
+      <View
+        style={[
+          styles.estado,
+          estaAceptada ? styles.estadoAceptado : styles.estadoRechazado,
+        ]}
+      >
+        <Text
+          style={[
+            styles.textoEstado,
+            estaAceptada
+              ? styles.textoEstadoAceptado
+              : styles.textoEstadoRechazado,
+          ]}
+        >
+          {estaAceptada ? 'Reserva aceptada' : 'Reserva rechazada'}
+        </Text>
       </View>
 
       <Pressable
-        style={({ pressed }) => [styles.botonCancelar, pressed && styles.pressed]}
+        style={({ pressed }) => [
+          styles.botonCancelar,
+          pressed && styles.pressed,
+        ]}
         onPress={onCancelar}
+        accessibilityRole="button"
+        accessibilityLabel={`Cancelar reserva de ${reserva.titulo}`}
       >
-        <Ionicons name="trash-outline" size={14} color="#EF4444" />
-        <Text style={styles.textoBotonCancelar}>Cancelar Reserva</Text>
+        <Ionicons
+          name="trash-outline"
+          size={16}
+          color={colors.error}
+        />
+        <Text style={styles.textoBotonCancelar}>
+          Eliminar reserva
+        </Text>
       </Pressable>
     </View>
   );
@@ -41,11 +96,11 @@ export default function ReservaItem({ reserva, onCancelar }) {
 
 const styles = StyleSheet.create({
   tarjeta: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: colors.superficie,
+    borderRadius: radius.lg,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borde,
     marginBottom: spacing.md,
   },
   cabecera: {
@@ -71,23 +126,47 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   textoInfo: {
+    flex: 1,
     fontSize: 13,
-    color: '#4B5563',
+    color: colors.textoSuave,
     marginLeft: spacing.xs,
+  },
+  estado: {
+    alignSelf: 'flex-start',
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  estadoAceptado: {
+    backgroundColor: '#DCFCE7',
+  },
+  estadoRechazado: {
+    backgroundColor: '#FEE2E2',
+  },
+  textoEstado: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  textoEstadoAceptado: {
+    color: '#166534',
+  },
+  textoEstadoRechazado: {
+    color: '#991B1B',
   },
   botonCancelar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: spacing.sm,
-    paddingVertical: spacing.xs,
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: colors.borde,
   },
   textoBotonCancelar: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#EF4444',
+    color: colors.error,
     marginLeft: spacing.xs,
   },
   pressed: {
